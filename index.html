@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Streaming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            margin: 20px;
+        }
+        video {
+            max-width: 100%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .list {
+            max-width: 800px;
+            margin: 20px;
+            text-align: left;
+        }
+        .list h2 {
+            text-align: center;
+        }
+        .list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .list li {
+            padding: 5px 0;
+        }
+        .list li a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .list li a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Movie Stream</h1>
+        <video id="videoPlayer" width="800" controls>
+            <source src="" type="video/mp4">
+            <track kind="subtitles" src="/subtitles" srclang="en" label="English">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    
+    <div class="list">
+        <h2>Movies</h2>
+        <ul id="movies"></ul>
+    </div>
+    
+    <div class="list">
+        <h2>TV Shows</h2>
+        <ul id="tvshows"></ul>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoPlayer');
+
+        async function loadMovies() {
+            const response = await fetch('/movies');
+            const movies = await response.json();
+            const moviesList = document.getElementById('movies');
+            movies.forEach(movie => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<a href="#" onclick="playVideo('movie', '${movie}')">${movie}</a>`;
+                moviesList.appendChild(listItem);
+            });
+        }
+
+        async function loadTVShows() {
+            const response = await fetch('/tvshows');
+            const shows = await response.json();
+            const showsList = document.getElementById('tvshows');
+            for (const [show, episodes] of Object.entries(shows)) {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${show}</strong><ul id="${show}"></ul>`;
+                showsList.appendChild(listItem);
+                const episodeList = document.getElementById(show);
+                episodes.forEach(episode => {
+                    const episodeItem = document.createElement('li');
+                    episodeItem.innerHTML = `<a href="#" onclick="playVideo('tvshow', '${show}', '${episode}')">${episode}</a>`;
+                    episodeList.appendChild(episodeItem);
+                });
+            }
+        }
+
+        function playVideo(type, name, episode) {
+            let src = `/video?type=${type}&name=${name}`;
+            if (type === 'tvshow') {
+                src += `&episode=${episode}`;
+            }
+            video.src = src;
+            video.load();
+            video.play();
+        }
+
+        window.onload = function() {
+            loadMovies();
+            loadTVShows();
+        };
+    </script>
+</body>
+</html>
